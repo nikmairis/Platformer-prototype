@@ -5,14 +5,10 @@ public class Controller2D : RaycastController
     public float fallingThroughPlatformResetTimer = 0.1f;
     private float maxClimbAngle = 80f;
     private float maxDescendAngle = 80f;
-    public Animator animator;
 
     public CollisionInfo collisions;
     [HideInInspector]
     public Vector2 playerInput;
-    
-
-
 
     public override void Start()
     {
@@ -26,18 +22,6 @@ public class Controller2D : RaycastController
         Move(moveAmount, Vector2.zero, standingOnPlatform);
     }
 
-    public void Flip(int direction){
-        if (direction==1){
-            Vector3 theScale = transform.localScale;
-            theScale.x = 1;
-            transform.localScale = theScale;
-        }
-        if (direction==-1){
-            Vector3 theScale = transform.localScale;
-            theScale.x = -1;
-            transform.localScale = theScale;
-        }
-    }
     public void Move(Vector2 moveAmount, Vector2 input, bool standingOnPlatform = false)
     {
         UpdateRaycastOrigins();
@@ -45,8 +29,6 @@ public class Controller2D : RaycastController
         collisions.moveAmountOld = moveAmount;
         playerInput = input;
 
-
-        animator.SetFloat("Speed", Mathf.Abs(moveAmount.x));
         if (moveAmount.x != 0)
         {
             collisions.faceDir = (int)Mathf.Sign(moveAmount.x);

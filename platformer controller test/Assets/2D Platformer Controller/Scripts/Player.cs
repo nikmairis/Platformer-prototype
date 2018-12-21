@@ -1,11 +1,13 @@
-﻿using Photon.Pun;
-using UnityEngine;
+﻿using UnityEngine;
+using Photon.Pun;
+using Photon.Realtime;
 using Cinemachine;
+
 namespace testprojekts{
 [RequireComponent(typeof(Controller2D))]
-public class Player : MonoBehaviourPun, IPunObservable
+public class Player : MonoBehaviour, IPunObservable
 {
-    public Animator Animator;
+    private PhotonView PV;
     public float maxJumpHeight = 4f;
     public float minJumpHeight = 1f;
     public float timeToJumpApex = .4f;
@@ -19,7 +21,6 @@ public class Player : MonoBehaviourPun, IPunObservable
 
     public bool canDoubleJump;
     private bool isDoubleJumping = false;
-    
 
     public float wallSlideSpeedMax = 3f;
     public float wallStickTime = .25f;
@@ -34,21 +35,22 @@ public class Player : MonoBehaviourPun, IPunObservable
     private Controller2D controller;
 
     private Vector2 directionalInput;
-    
     private bool wallSliding;
     private int wallDirX;
+
     public void Awake(){
-        if (!photonView.IsMine && GetComponent<PlayerInput>() != null) {
+        PV = GetComponent<PhotonView>();
+        if (!PV.IsMine && GetComponent<PlayerInput>() != null) {
             Destroy(GetComponent<PlayerInput>());
         }
     }
+
     private void Start()
     {
+        PV = GetComponent<PhotonView>();
         controller = GetComponent<Controller2D>();
-        if(photonView.IsMine)
+        if(PV.IsMine)
          GameObject.Find("CM vcam1").GetComponent<CinemachineVirtualCamera>().m_Follow = this.transform;
-
-
         gravity = -(2 * maxJumpHeight) / Mathf.Pow(timeToJumpApex, 2);
         maxJumpVelocity = Mathf.Abs(gravity) * timeToJumpApex;
         minJumpVelocity = Mathf.Sqrt(2 * Mathf.Abs(gravity) * minJumpHeight);
@@ -56,14 +58,10 @@ public class Player : MonoBehaviourPun, IPunObservable
 
     private void Update()
     {
-        JumpAnim(velocity.y);
-        Animator.SetBool("IsWallsliding", wallSliding);
         CalculateVelocity();
         HandleWallSliding();
-        
-        controller.Flip(controller.collisions.faceDir);
-        controller.Move(velocity * Time.deltaTime, directionalInput);
 
+        controller.Move(velocity * Time.deltaTime, directionalInput);
 
         if (controller.collisions.above || controller.collisions.below)
         {
@@ -71,13 +69,6 @@ public class Player : MonoBehaviourPun, IPunObservable
         }
     }
 
-    public void JumpAnim(float vely){
-        if(Mathf.Abs(vely) >0){
-             Animator.SetBool("IsJumping", true);
-        }else{
-            Animator.SetBool("IsJumping", false);
-        }
-    }
     public void SetDirectionalInput(Vector2 input)
     {
         directionalInput = input;
@@ -102,8 +93,7 @@ public class Player : MonoBehaviourPun, IPunObservable
                 velocity.x = -wallDirX * wallLeap.x;
                 velocity.y = wallLeap.y;
             }
-            // Enable, ja grib, lai var doublejumpot arī no sienas
-            //isDoubleJumping = false;
+            isDoubleJumping = false;
         }
         if (controller.collisions.below)
         {
@@ -122,7 +112,6 @@ public class Player : MonoBehaviourPun, IPunObservable
         if (velocity.y > minJumpVelocity)
         {
             velocity.y = minJumpVelocity;
-           
         }
     }
 
@@ -161,21 +150,9 @@ public class Player : MonoBehaviourPun, IPunObservable
 
     private void CalculateVelocity()
     {
-
         float targetVelocityX = directionalInput.x * moveSpeed;
         velocity.x = Mathf.SmoothDamp(velocity.x, targetVelocityX, ref velocityXSmoothing, (controller.collisions.below ? accelerationTimeGrounded : accelerationTimeAirborne));
         velocity.y += gravity * Time.deltaTime;
-    }
-    public static void RefreshInstance(ref Player player, Player Prefab){
-        var position = Vector3.zero;
-        var rotation = Quaternion.identity;
-        if(player != null){
-            position = player.transform.position;
-            rotation = player.transform.rotation;
-            PhotonNetwork.Destroy(player.gameObject);
-        }
-        player = PhotonNetwork.Instantiate(Prefab.gameObject.name, position, rotation).GetComponent<Player>();
-
     }
 
         public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
