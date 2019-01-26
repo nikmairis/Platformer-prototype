@@ -16,6 +16,32 @@ public class Controller2D : RaycastController
 
         collisions.faceDir = 1;
     }
+    public void Flip(int direction){
+        if (direction==1){
+            Vector3 theScale = transform.localScale;
+            theScale.x = 1;
+            transform.localScale = theScale;
+            Vector3 theScaleChild = transform.GetChild(1).localScale;
+            theScaleChild.x = 0.2f;
+            transform.GetChild(1).localScale = theScaleChild;
+            Vector3 theScaleChild2 = transform.GetChild(2).localScale;
+            theScaleChild2.x = 1.5f;
+            theScaleChild2.y = 1.5f;
+            transform.GetChild(2).localScale = theScaleChild2;
+        }
+        if (direction==-1){
+            Vector3 theScale = transform.localScale;
+            theScale.x = -1;
+            transform.localScale = theScale;
+            Vector3 theScaleChild = transform.GetChild(1).localScale;
+            theScaleChild.x = -0.2f;
+            transform.GetChild(1).localScale = theScaleChild;
+            Vector3 theScaleChild2 = transform.GetChild(2).localScale;
+            theScaleChild2.x = -1.5f;
+            theScaleChild2.y = -1.5f;
+            transform.GetChild(2).localScale = theScaleChild2;
+        }
+    }
 
     public void Move(Vector2 moveAmount, bool standingOnPlatform = false)
     {

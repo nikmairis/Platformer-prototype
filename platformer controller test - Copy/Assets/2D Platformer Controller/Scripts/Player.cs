@@ -60,7 +60,7 @@ public class Player : MonoBehaviour, IPunObservable
     {
         CalculateVelocity();
         HandleWallSliding();
-
+        controller.Flip(controller.collisions.faceDir);
         controller.Move(velocity * Time.deltaTime, directionalInput);
 
         if (controller.collisions.above || controller.collisions.below)
@@ -162,11 +162,13 @@ public class Player : MonoBehaviour, IPunObservable
                 stream.SendNext(isDoubleJumping);
                 stream.SendNext(velocity);
                 stream.SendNext(wallSliding);
+                stream.SendNext(this.transform.position);
             }else{
                 directionalInput = (Vector2)stream.ReceiveNext();
                 isDoubleJumping = (bool)stream.ReceiveNext();
                 velocity = (Vector3)stream.ReceiveNext();
                 wallSliding = (bool)stream.ReceiveNext();
+                this.transform.position = (Vector3)stream.ReceiveNext();
             }
         }
     }
