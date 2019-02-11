@@ -31,13 +31,11 @@ public class EnemyVisibility : MonoBehaviour {
 			hit = Physics2D.Raycast(MyPosition, go.transform.position - MyPosition, 1000);
 			if(hit){
 				if(hit.transform.tag == "Avatar"){
-					Debug.Log("Hit an avatar!");
-					go.transform.parent.gameObject.transform.GetChild(2).GetComponent<SpriteRenderer>().enabled = true;
-					go.transform.parent.gameObject.transform.GetChild(4).GetComponent<SpriteRenderer>().enabled = true;
+					go.transform.parent.gameObject.transform.Find("gun").GetComponent<SpriteRenderer>().enabled = true;
+					go.transform.parent.gameObject.transform.GetChild(5).GetComponent<SpriteRenderer>().enabled = true;
 				}else{
-					Debug.Log("Hit something else");
-					go.transform.parent.gameObject.transform.GetChild(2).GetComponent<SpriteRenderer>().enabled = false;
-					go.transform.parent.gameObject.transform.GetChild(4).GetComponent<SpriteRenderer>().enabled = false;
+					go.transform.parent.gameObject.transform.Find("gun").GetComponent<SpriteRenderer>().enabled = false;
+					go.transform.parent.gameObject.transform.GetChild(5).GetComponent<SpriteRenderer>().enabled = false;
 				}
 			}
 			Debug.Log(go.transform.position);

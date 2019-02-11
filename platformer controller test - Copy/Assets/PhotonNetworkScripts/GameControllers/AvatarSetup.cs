@@ -13,8 +13,12 @@ public class AvatarSetup : MonoBehaviour, IPunObservable {
 	public int playerDamage;
 	public int playerDamageTaken = 0;
 	public int playerHealthLeft;
+	public static AvatarSetup avatarSetup;
 	// Use this for initialization
 	void Start () {
+		if(AvatarSetup.avatarSetup == null){
+			AvatarSetup.avatarSetup = this;
+		}
 		PV = GetComponent<PhotonView>();
 		if(PV.IsMine){
 			PV.RPC("RPC_AddCharacter", RpcTarget.AllBuffered, PlayerInfo.PI.mySelectedCharacter);

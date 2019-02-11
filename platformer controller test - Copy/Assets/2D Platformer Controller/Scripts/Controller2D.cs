@@ -9,6 +9,10 @@ public class Controller2D : RaycastController
     public CollisionInfo collisions;
     [HideInInspector]
     public Vector2 playerInput;
+    public static Controller2D controller2d;
+    void awake (){
+        controller2d = this;
+    }
 
     public override void Start()
     {
@@ -18,6 +22,10 @@ public class Controller2D : RaycastController
     }
     public void Flip(int direction){
         if (direction==1){
+            /*
+
+                Vecā versija, ar bugu sienā
+
             Vector3 theScale = transform.localScale;
             theScale.x = 1;
             transform.localScale = theScale;
@@ -28,8 +36,19 @@ public class Controller2D : RaycastController
             theScaleChild2.x = 1.5f;
             theScaleChild2.y = 1.5f;
             transform.GetChild(2).localScale = theScaleChild2;
+            */
+            Vector3 theScaleChild = transform.GetChild(5).localScale;
+            theScaleChild.x = 1;
+            transform.GetChild(5).localScale = theScaleChild;
+            Vector3 theScaleChild2 = transform.GetChild(3).localScale;
+            theScaleChild2.y = 1.5f;
+            transform.GetChild(3).localScale = theScaleChild2;
         }
         if (direction==-1){
+            /*
+
+                Vecā versija, ar bugu sienā
+
             Vector3 theScale = transform.localScale;
             theScale.x = -1;
             transform.localScale = theScale;
@@ -40,6 +59,13 @@ public class Controller2D : RaycastController
             theScaleChild2.x = -1.5f;
             theScaleChild2.y = -1.5f;
             transform.GetChild(2).localScale = theScaleChild2;
+            */
+            Vector3 theScaleChild = transform.GetChild(5).localScale;
+            theScaleChild.x = -1;
+            transform.GetChild(5).localScale = theScaleChild;
+            Vector3 theScaleChild2 = transform.GetChild(3).localScale;
+            theScaleChild2.y = -1.5f;
+            transform.GetChild(3).localScale = theScaleChild2;
         }
     }
 

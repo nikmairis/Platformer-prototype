@@ -13,7 +13,10 @@ public class Player : MonoBehaviour, IPunObservable
     public float timeToJumpApex = .4f;
     private float accelerationTimeAirborne = .2f;
     private float accelerationTimeGrounded = .1f;
-    private float moveSpeed = 6f;
+    private float moveSpeed = 12f;
+    private float DashSpeedy = 5;
+    private float DashSpeedx = 30;
+    private bool IsDashing = false;
 
     public Vector2 wallJumpClimb;
     public Vector2 wallJumpOff;
@@ -49,8 +52,9 @@ public class Player : MonoBehaviour, IPunObservable
     {
         PV = GetComponent<PhotonView>();
         controller = GetComponent<Controller2D>();
-        if(PV.IsMine)
-         GameObject.Find("CM vcam1").GetComponent<CinemachineVirtualCamera>().m_Follow = this.transform;
+    //ENABLE, TO SWITCH TO SCINEMATIC CHARACTER FOLLOW CAM!
+        //if(PV.IsMine)
+        //GameObject.Find("CM vcam1").GetComponent<CinemachineVirtualCamera>().m_Follow = this.transform;
         gravity = -(2 * maxJumpHeight) / Mathf.Pow(timeToJumpApex, 2);
         maxJumpVelocity = Mathf.Abs(gravity) * timeToJumpApex;
         minJumpVelocity = Mathf.Sqrt(2 * Mathf.Abs(gravity) * minJumpHeight);
@@ -58,6 +62,17 @@ public class Player : MonoBehaviour, IPunObservable
 
     private void Update()
     {
+        if(PV.IsMine){
+        if(Input.GetKeyDown(KeyCode.F)){
+            if(IsDashing == false){
+                Dash();
+            }
+        }}
+        if (controller.collisions.below && !wallSliding)
+        {
+            isDoubleJumping = false;
+            IsDashing = false;
+        }
         CalculateVelocity();
         HandleWallSliding();
         controller.Flip(controller.collisions.faceDir);
@@ -68,7 +83,20 @@ public class Player : MonoBehaviour, IPunObservable
             velocity.y = 0f;
         }
     }
+    public void Dash(){
+        IsDashing = true;
+        if(directionalInput.x == 1){
+            velocity.x += DashSpeedx;
+            velocity.y += DashSpeedy;
 
+        }
+        if(directionalInput.x == -1){
+            velocity.x -= DashSpeedx;
+            velocity.y += DashSpeedy;
+
+        }
+
+    }
     public void SetDirectionalInput(Vector2 input)
     {
         directionalInput = input;
@@ -152,7 +180,9 @@ public class Player : MonoBehaviour, IPunObservable
     {
         float targetVelocityX = directionalInput.x * moveSpeed;
         velocity.x = Mathf.SmoothDamp(velocity.x, targetVelocityX, ref velocityXSmoothing, (controller.collisions.below ? accelerationTimeGrounded : accelerationTimeAirborne));
+        if(velocity.x <=10 || velocity.x >= -10){
         velocity.y += gravity * Time.deltaTime;
+        }
     }
 
         public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
