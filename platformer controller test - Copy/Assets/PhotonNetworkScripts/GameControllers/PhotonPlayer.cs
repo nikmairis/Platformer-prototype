@@ -6,23 +6,19 @@ using System.IO;
 
 public class PhotonPlayer : MonoBehaviour {
 
-
 	private PhotonView PV;
 	public GameObject myAvatar;
 
-	// Use this for initialization
+	// INITIALIZES YOUR VISUAL CHARACTER
 	void Start () {
 		PV = GetComponent<PhotonView>();
 		int spawnPicker = Random.Range(0, GameSetup.GS.spawnPoints.Length);
+
+			//SPAWNS YOUR CHOSEN CHARACTER AT A RANDOM SPAWNPOINT
 		if(PV.IsMine){
 			myAvatar = PhotonNetwork.Instantiate(Path.Combine("PhotonPrefabs", "Player"),
-			 GameSetup.GS.spawnPoints[spawnPicker].position, GameSetup.GS.spawnPoints[spawnPicker].rotation, 0);
+			GameSetup.GS.spawnPoints[spawnPicker].position, GameSetup.GS.spawnPoints[spawnPicker].rotation, 0);
 
 		}
-	}
-	
-	// Update is called once per frame
-	void Update () {
-		
 	}
 }

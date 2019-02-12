@@ -14,7 +14,7 @@ public class Gun : MonoBehaviour {
 	}
 	
 	// Update is called once per frame
-	void Update () {
+	void Update () { 
 
 		Vector3 difference = Camera.main.ScreenToWorldPoint(Input.mousePosition) - transform.GetChild(3).position;
 		float rotZ = Mathf.Atan2(difference.y, difference.x) * Mathf.Rad2Deg;

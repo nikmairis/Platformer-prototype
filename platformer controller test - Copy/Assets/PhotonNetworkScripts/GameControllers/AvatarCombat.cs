@@ -19,7 +19,9 @@ public class AvatarCombat : MonoBehaviour {
 	public GameObject[] AvatarArray;
 	// Vector3 of my position
 	public Vector3 MyPosition;
+	// Refference to the projectile Prefab
 	public GameObject Projectile;
+	// Refference to the Granade Prefab
 	public GameObject Granade;
 	//Projectile GameObject
 	public GameObject myProjectile;
@@ -27,10 +29,11 @@ public class AvatarCombat : MonoBehaviour {
 	public GameObject myGranade;
 	// Granade throwing default force
 	public float ThrowForce = 100f;
+	//Granade strength channeling timer initialization
 	private float throwTimer =0;
 
 
-	// Use this for initialization
+	// Start function for initialization
 	void Start () {
 		PhotonNetwork.SendRate = 30;
 		PhotonNetwork.SerializationRate = 30;
@@ -45,7 +48,8 @@ public class AvatarCombat : MonoBehaviour {
 			line.material = new Material (Shader.Find ("Sprites/Default"));
 			line.material.color = Color.red; 
 	}
-	
+
+
 	void Update () {
 		text2.text = avatarSetup.playerHealth.ToString();
 		if(!PV.IsMine){
@@ -67,9 +71,10 @@ public class AvatarCombat : MonoBehaviour {
 			if(Input.GetMouseButtonDown(0)){
 				ProjectileShoot();
 			}
+
+			// Granade throw ChargeUp
 			if(Input.GetKey(KeyCode.G)){
 				//Vector3 MousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-				Debug.Log(throwTimer);
 				throwTimer += Time.deltaTime*10;
 				Vector3 meterWidth = this.transform.Find("ThrowBar").localScale;
 				float scaleSize = throwTimer / 5;
@@ -80,13 +85,17 @@ public class AvatarCombat : MonoBehaviour {
 
 				//GranadeThrow(MousePos);
 			}
+
+
+			//Granade throw release
 			if(Input.GetKeyUp(KeyCode.G)){
 				Vector3 MousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
 				if(throwTimer < 2) throwTimer = 2;
 				if(throwTimer > 5) throwTimer = 5;
 				ThrowForce = 250 * throwTimer;
-				PV.RPC("RPC_ThrowBomb", RpcTarget.All, MousePos , ThrowForce);
-				//GranadeThrow(MousePos);
+				Vector3 SendDirection = (MousePos - rayOrigin.transform.position).normalized * ThrowForce;
+				Vector3 SendPosition = this.transform.position;
+				PV.RPC("RPC_ThrowBomb", RpcTarget.All, SendDirection , SendPosition);
 				throwTimer = 0;
 				Vector3 tempSize = this.transform.Find("ThrowBar").localScale;
 				tempSize.x =0;
@@ -103,16 +112,20 @@ public class AvatarCombat : MonoBehaviour {
 				myProjectile.GetComponent<Projectile>().myDamage = avatarSetup.playerDamage;
 				Debug.Log(ShootDirection);
 	}
+
+
+	// RPC FOR THROWING GRANADE ON ALL CLIENTS
 	[PunRPC]
-	void RPC_ThrowBomb(Vector3 MousePos, float ThrowForceSent){
-		myGranade = Instantiate(Granade, this.transform.position, this.transform.rotation);
+	void RPC_ThrowBomb(Vector3 Direction, Vector3 Position){
+		myGranade = Instantiate(Granade, Position, this.transform.rotation);
 			Physics2D.IgnoreCollision(myGranade.GetComponent<CapsuleCollider2D>(), this.gameObject.GetComponent<BoxCollider2D>());
 			Rigidbody2D rb2d = myGranade.GetComponent<Rigidbody2D>();
-			Vector3 SendDirection = (MousePos - rayOrigin.transform.position).normalized * ThrowForceSent;
-			//PV.RPC("RPC_ThrowBomb", RpcTarget.All, SendDirection , rb2d);
-			rb2d.AddForce((MousePos - rayOrigin.transform.position).normalized * ThrowForceSent);
+			rb2d.AddForce(Direction);
 	}
 
+
+	// RPC FOR TEST PURPOUSES
+	// DRAWING RAYS WHEN USING RAYCAST SHOOTING
 	[PunRPC]
 	void RPC_DrawRay(Vector3 MousePos){
 		Vector3 difference = MousePos - rayOrigin.transform.position;
@@ -127,6 +140,8 @@ public class AvatarCombat : MonoBehaviour {
              	line.SetPosition(1, MousePos);
 				}
 	}
+
+	
 	// LOCAL FUNCTION FOR SHOOTING USING RAYCASTS. CALLS AN RPC WHEN HITS A PLAYER.
 	void Shooting(Vector3 MousePos){
 		Vector3 difference = MousePos - rayOrigin.transform.position;
