@@ -31,6 +31,7 @@ public class AvatarCombat : MonoBehaviour {
 	public float ThrowForce = 100f;
 	//Granade strength channeling timer initialization
 	private float throwTimer =0;
+	Vector3 GunAimPos = new Vector3(0,0,0);
 
 
 	// Start function for initialization
@@ -69,7 +70,10 @@ public class AvatarCombat : MonoBehaviour {
 
 			//button for projectile shooting
 			if(Input.GetMouseButtonDown(0)){
-				ProjectileShoot();
+				//ProjectileShoot();
+				Vector3 ShootDirection = rayOrigin.transform.rotation.eulerAngles - new Vector3(0, 0, 90);
+				Vector3 SendPosition = rayOrigin.transform.position;
+				PV.RPC("RPC_ProjectileShoot", RpcTarget.All, ShootDirection, SendPosition );
 			}
 
 			// Granade throw ChargeUp
@@ -105,12 +109,24 @@ public class AvatarCombat : MonoBehaviour {
 	}
 
 
+	/*
 	//Mechanic for projectile shooting
 	void ProjectileShoot(){
 		var ShootDirection = rayOrigin.transform.rotation.eulerAngles - new Vector3(0, 0, 90);
 				myProjectile = PhotonNetwork.Instantiate(Path.Combine("PhotonPrefabs", "Projectile"), rayOrigin.position, Quaternion.Euler(ShootDirection));
 				myProjectile.GetComponent<Projectile>().myDamage = avatarSetup.playerDamage;
+				myProjectile.GetComponent<Projectile>().ShootersColider = this.GetComponent<BoxCollider2D>();
 				Debug.Log(ShootDirection);
+	}
+	*/
+
+	[PunRPC]
+	void RPC_ProjectileShoot(Vector3 ShootDirection, Vector3 Position, PhotonMessageInfo info){
+		myProjectile = Instantiate(Projectile, Position, Quaternion.Euler(ShootDirection));
+		Physics2D.IgnoreCollision(info.photonView.gameObject.transform.GetComponent<BoxCollider2D>(), myProjectile.GetComponent<BoxCollider2D>());
+		myProjectile.GetComponent<Projectile>().myDamage = avatarSetup.playerDamage;
+		myProjectile.GetComponent<Projectile>().ShootersColider = this.GetComponent<BoxCollider2D>();
+		myProjectile.GetComponent<Projectile>().PV = PV;
 	}
 
 
@@ -121,6 +137,7 @@ public class AvatarCombat : MonoBehaviour {
 			Physics2D.IgnoreCollision(myGranade.GetComponent<CapsuleCollider2D>(), this.gameObject.GetComponent<BoxCollider2D>());
 			Rigidbody2D rb2d = myGranade.GetComponent<Rigidbody2D>();
 			rb2d.AddForce(Direction);
+			myGranade.GetComponent<Granade>().PV = PV;
 	}
 
 

@@ -9,6 +9,8 @@ public class Controller2D : RaycastController
     public CollisionInfo collisions;
     [HideInInspector]
     public Vector2 playerInput;
+    [HideInInspector]
+    public int FaceDirForWeapon = 1;
     public static Controller2D controller2d;
     void awake (){
         controller2d = this;
@@ -20,6 +22,9 @@ public class Controller2D : RaycastController
 
         collisions.faceDir = 1;
     }
+
+
+    //FUNCTION FOR ROTATING CHARACTER IN MOUSE DIRECTION
     public void Flip(int direction){
         if (direction==1){
             /*

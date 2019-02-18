@@ -68,6 +68,7 @@ public class Player : MonoBehaviour, IPunObservable
                 Dash();
             }
         }}
+
         if (controller.collisions.below && !wallSliding)
         {
             isDoubleJumping = false;
@@ -75,7 +76,7 @@ public class Player : MonoBehaviour, IPunObservable
         }
         CalculateVelocity();
         HandleWallSliding();
-        controller.Flip(controller.collisions.faceDir);
+        controller.Flip(controller.FaceDirForWeapon);
         controller.Move(velocity * Time.deltaTime, directionalInput);
 
         if (controller.collisions.above || controller.collisions.below)
