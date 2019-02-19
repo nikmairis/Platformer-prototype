@@ -17,6 +17,7 @@ public class Player : MonoBehaviour, IPunObservable
     private float DashSpeedy = 5;
     private float DashSpeedx = 30;
     private bool IsDashing = false;
+    private float DashTimer = -0.1f;
 
     public Vector2 wallJumpClimb;
     public Vector2 wallJumpOff;
@@ -78,7 +79,9 @@ public class Player : MonoBehaviour, IPunObservable
         HandleWallSliding();
         controller.Flip(controller.FaceDirForWeapon);
         controller.Move(velocity * Time.deltaTime, directionalInput);
-
+        if(IsDashing){
+            DashTimer -= Time.deltaTime;
+        }
         if (controller.collisions.above || controller.collisions.below)
         {
             velocity.y = 0f;
@@ -86,6 +89,7 @@ public class Player : MonoBehaviour, IPunObservable
     }
     public void Dash(){
         IsDashing = true;
+        DashTimer = 0.3f;
         if(directionalInput.x == 1){
             velocity.x += DashSpeedx;
             velocity.y += DashSpeedy;
@@ -105,6 +109,7 @@ public class Player : MonoBehaviour, IPunObservable
 
     public void OnJumpInputDown()
     {
+        DashTimer = -0.1f;
         if (wallSliding)
         {
             if (wallDirX == directionalInput.x)
@@ -179,10 +184,20 @@ public class Player : MonoBehaviour, IPunObservable
 
     private void CalculateVelocity()
     {
-        float targetVelocityX = directionalInput.x * moveSpeed;
+        float targetVelocityX;
+        if(DashTimer >= 0.2){
+            targetVelocityX = 0;
+        }
+        else{
+            targetVelocityX = directionalInput.x * moveSpeed;
+        }
         velocity.x = Mathf.SmoothDamp(velocity.x, targetVelocityX, ref velocityXSmoothing, (controller.collisions.below ? accelerationTimeGrounded : accelerationTimeAirborne));
-        if(velocity.x <=10 || velocity.x >= -10){
-        velocity.y += gravity * Time.deltaTime;
+        //if(velocity.x <=10 || velocity.x >= -10){
+        if(DashTimer >= 0){
+            velocity.y = 0;
+        }
+        else{
+            velocity.y += gravity * Time.deltaTime;
         }
     }
 
