@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using Photon.Pun;
 using UnityEngine;
+namespace testprojekts{
 
 public class AvatarCombat : MonoBehaviour {
 
@@ -185,4 +186,5 @@ public class AvatarCombat : MonoBehaviour {
 			}
 	}
 
+}
 }

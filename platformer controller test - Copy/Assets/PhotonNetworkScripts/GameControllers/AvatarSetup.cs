@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Photon.Pun;
 using UnityEngine;
 using Photon.Realtime;
+namespace testprojekts{
 
 public class AvatarSetup : MonoBehaviour, IPunObservable {
 
@@ -55,9 +56,14 @@ public class AvatarSetup : MonoBehaviour, IPunObservable {
 		myCharacter = Instantiate(PlayerInfo.PI.allCharacters[whichCharacter], transform.position, transform.rotation, this.transform);
 		if(characterValue == 1){
 			playerHealth = 200;
+			this.gameObject.GetComponent<Player>().moveSpeed = 7f;
+			this.gameObject.GetComponent<Player>().DashSpeedx = 25f;
 		}
 		else{
 			playerHealth = 100;
+			this.gameObject.GetComponent<Player>().moveSpeed = 14f;
+			this.gameObject.GetComponent<Player>().DashSpeedx = 35f;
+
 		}
 	}
 
@@ -78,4 +84,5 @@ public class AvatarSetup : MonoBehaviour, IPunObservable {
                 playerHealth = (int)stream.ReceiveNext();
             }
         }
+}
 }

@@ -13,9 +13,10 @@ public class Player : MonoBehaviour, IPunObservable
     public float timeToJumpApex = .4f;
     private float accelerationTimeAirborne = .2f;
     private float accelerationTimeGrounded = .1f;
-    private float moveSpeed = 12f;
+    public float moveSpeed = 12f;
     private float DashSpeedy = 5;
-    private float DashSpeedx = 30;
+    [HideInInspector]
+    public float DashSpeedx = 30;
     private bool IsDashing = false;
     private float DashTimer = -0.1f;
 
@@ -68,17 +69,25 @@ public class Player : MonoBehaviour, IPunObservable
             if(IsDashing == false){
                 Dash();
             }
-        }}
+        }
+        }
 
+        //Resets the DoubleJump
         if (controller.collisions.below && !wallSliding)
         {
             isDoubleJumping = false;
+        }
+        //Resets Dash timer. Fixes the bug of floating in air
+        if(controller.collisions.below && !wallSliding && DashTimer <=0){
             IsDashing = false;
         }
+
         CalculateVelocity();
         HandleWallSliding();
         controller.Flip(controller.FaceDirForWeapon);
         controller.Move(velocity * Time.deltaTime, directionalInput);
+
+
         if(IsDashing){
             DashTimer -= Time.deltaTime;
         }
@@ -184,6 +193,7 @@ public class Player : MonoBehaviour, IPunObservable
 
     private void CalculateVelocity()
     {
+        //HANDLES HORIZONTAL VELOCITY AND DASHES
         float targetVelocityX;
         if(DashTimer >= 0.2){
             targetVelocityX = 0;
@@ -192,7 +202,8 @@ public class Player : MonoBehaviour, IPunObservable
             targetVelocityX = directionalInput.x * moveSpeed;
         }
         velocity.x = Mathf.SmoothDamp(velocity.x, targetVelocityX, ref velocityXSmoothing, (controller.collisions.below ? accelerationTimeGrounded : accelerationTimeAirborne));
-        //if(velocity.x <=10 || velocity.x >= -10){
+        
+        //HANDLES VERTICAL VELOCITY AND DASHES
         if(DashTimer >= 0){
             velocity.y = 0;
         }
