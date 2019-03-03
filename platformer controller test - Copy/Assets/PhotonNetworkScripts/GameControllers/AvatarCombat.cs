@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.IO;
 using Photon.Pun;
 using UnityEngine;
+using UnityEngine.UI;
+
 namespace testprojekts{
 
 public class AvatarCombat : MonoBehaviour {
@@ -32,12 +34,17 @@ public class AvatarCombat : MonoBehaviour {
 	public float ThrowForce = 100f;
 	//Granade strength channeling timer initialization
 	private float throwTimer =0;
-	Vector3 GunAimPos = new Vector3(0,0,0);
+	private int bulletCount;
+	private int granadeCount;
+	private float shootTimer = 0;
+
 
 
 	// Start function for initialization
 	void Start () {
-		PhotonNetwork.SendRate = 30;
+		bulletCount = 30;
+		granadeCount = 5;
+		PhotonNetwork.SendRate = 30	;
 		PhotonNetwork.SerializationRate = 30;
 		PV = GetComponent<PhotonView>();
 		avatarSetup = GetComponent<AvatarSetup>();
@@ -57,6 +64,8 @@ public class AvatarCombat : MonoBehaviour {
 		if(!PV.IsMine){
 			return;
 		}else{
+			AmmoDisplayManager.ammo = bulletCount;
+			AmmoDisplayManager.granades = granadeCount;
 			/*
 							****************************************************
 							!!!!!!!   Mechanic for shooting with Raycasts   !!!!
@@ -70,13 +79,19 @@ public class AvatarCombat : MonoBehaviour {
 			*/
 
 			//button for projectile shooting
-			if(Input.GetMouseButtonDown(0)){
+			if(Input.GetMouseButton(0)){
+				shootTimer += Time.deltaTime;
 				//ProjectileShoot();
 				Vector3 ShootDirection = rayOrigin.transform.rotation.eulerAngles - new Vector3(0, 0, 90);
 				Vector3 SendPosition = rayOrigin.transform.position;
+				if(bulletCount >=1 && shootTimer >=0.1f){
+				shootTimer = 0f;
 				PV.RPC("RPC_ProjectileShoot", RpcTarget.All, ShootDirection, SendPosition );
+				bulletCount--;
+				}
+				
 			}
-
+		if(granadeCount >=1){
 			// Granade throw ChargeUp
 			if(Input.GetKey(KeyCode.G)){
 				//Vector3 MousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
@@ -94,18 +109,21 @@ public class AvatarCombat : MonoBehaviour {
 
 			//Granade throw release
 			if(Input.GetKeyUp(KeyCode.G)){
+				Vector3 test = this.transform.GetComponent<Player>().velocity.normalized/4;
 				Vector3 MousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
 				if(throwTimer < 2) throwTimer = 2;
 				if(throwTimer > 5) throwTimer = 5;
 				ThrowForce = 250 * throwTimer;
-				Vector3 SendDirection = (MousePos - rayOrigin.transform.position).normalized * ThrowForce;
+				Vector3 SendDirection = ((MousePos - rayOrigin.transform.position).normalized+ test) * ThrowForce;
 				Vector3 SendPosition = this.transform.position;
 				PV.RPC("RPC_ThrowBomb", RpcTarget.All, SendDirection , SendPosition);
 				throwTimer = 0;
 				Vector3 tempSize = this.transform.Find("ThrowBar").localScale;
 				tempSize.x =0;
 				this.transform.Find("ThrowBar").localScale = tempSize;
+				granadeCount--;
 			}
+		}
 		}
 	}
 
@@ -138,6 +156,7 @@ public class AvatarCombat : MonoBehaviour {
 			Physics2D.IgnoreCollision(myGranade.GetComponent<CapsuleCollider2D>(), this.gameObject.GetComponent<BoxCollider2D>());
 			Rigidbody2D rb2d = myGranade.GetComponent<Rigidbody2D>();
 			rb2d.AddForce(Direction);
+			rb2d.AddTorque(5f);
 			myGranade.GetComponent<Granade>().PV = PV;
 	}
 
@@ -185,6 +204,18 @@ public class AvatarCombat : MonoBehaviour {
              line.SetPosition(1, MousePos);
 			}
 	}
+	 private void OnTriggerEnter2D(Collider2D other)
+    {
+		Debug.Log(other.gameObject.tag);
+        if (other.gameObject.tag == "AmmoBox")
+        {
+            bulletCount += 20;
+        }
+		if (other.gameObject.tag == "TNTBox")
+        {
+            granadeCount += 5;
+        }
+    }
 
 }
 }

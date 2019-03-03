@@ -2,6 +2,7 @@
 using Photon.Pun;
 using Photon.Realtime;
 using Cinemachine;
+using System;
 
 namespace testprojekts{
 [RequireComponent(typeof(Controller2D))]
@@ -34,7 +35,7 @@ public class Player : MonoBehaviour, IPunObservable
     private float gravity;
     private float maxJumpVelocity;
     private float minJumpVelocity;
-    private Vector3 velocity;
+    public Vector3 velocity;
     private float velocityXSmoothing;
 
     private Controller2D controller;
@@ -42,6 +43,18 @@ public class Player : MonoBehaviour, IPunObservable
     private Vector2 directionalInput;
     private bool wallSliding;
     private int wallDirX;
+    private Vector3 NetworkVelocity = new Vector3(0,0,0);
+    private Vector2 NetworkInput;
+    private Vector3 NetworkPosition = new Vector3(0,0,0);
+    private double TimeOfSending = 0;
+    private double NowTime = 0;
+    public Vector3 PositionWhenReceived = new Vector3(0,0,0);
+    private Vector3 PrevNetworkPosition = new Vector3(0,0,0);
+    public double time1;
+    public double time2 = 0;
+    public bool reset;
+    public float counter;
+    public double SmoothFact =1;
 
     public void Awake(){
         PV = GetComponent<PhotonView>();
@@ -61,7 +74,6 @@ public class Player : MonoBehaviour, IPunObservable
         maxJumpVelocity = Mathf.Abs(gravity) * timeToJumpApex;
         minJumpVelocity = Mathf.Sqrt(2 * Mathf.Abs(gravity) * minJumpHeight);
     }
-
     private void Update()
     {
         if(PV.IsMine){
@@ -70,7 +82,7 @@ public class Player : MonoBehaviour, IPunObservable
                 Dash();
             }
         }
-        }
+        
 
         //Resets the DoubleJump
         if (controller.collisions.below && !wallSliding)
@@ -95,6 +107,36 @@ public class Player : MonoBehaviour, IPunObservable
         {
             velocity.y = 0f;
         }
+        } else{
+            NetworkCalculations();          
+        }
+    }
+    // CALCULATES THE POSITION OF NETWORKED PLAYERS
+    public void NetworkCalculations(){
+            // value that boosts movespeed if distance between positions is too small.
+            float booster = 1;
+            // counts time thats passed from last received package
+            counter += Time.deltaTime;
+            // Resets timer, if new package has been received
+            if(reset==true){
+                counter = Time.deltaTime;
+                reset= false;
+            }
+            // Calculates the distance between position when received and the networked players sent pos.
+            float fulldistance = Vector3.Distance(PositionWhenReceived, NetworkPosition);
+            // speeds up movement, if distance too small
+            if(fulldistance <=0.5f){
+                booster=2;
+            }
+            // ACTUALLY MOVES PLAYER. Lerps from Position in witch this avatar was, when received data to the
+            // position that was sent through the network and adds 1/4 of the velocity that the player had
+            // at the moment of sending. SmoothFact =  1/(time between last 2 packets)
+            this.transform.position = Vector3.Lerp(PositionWhenReceived, NetworkPosition+(NetworkVelocity*(float)time1/4),
+             (float)SmoothFact*counter*booster);
+             //Doesn't let the t parameter of Vector3.Lerp go above 1
+            if((float)SmoothFact*counter*booster >=0.95f && fulldistance <=0.5f){
+                counter -= Time.deltaTime;
+            }
     }
     public void Dash(){
         IsDashing = true;
@@ -215,17 +257,22 @@ public class Player : MonoBehaviour, IPunObservable
         public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
         {
             if(stream.IsWriting){
-                stream.SendNext(directionalInput);
-                stream.SendNext(isDoubleJumping);
                 stream.SendNext(velocity);
-                stream.SendNext(wallSliding);
                 stream.SendNext(this.transform.position);
+                stream.SendNext(NetworkPosition);
+
             }else{
-                directionalInput = (Vector2)stream.ReceiveNext();
-                isDoubleJumping = (bool)stream.ReceiveNext();
-                velocity = (Vector3)stream.ReceiveNext();
-                wallSliding = (bool)stream.ReceiveNext();
-                this.transform.position = (Vector3)stream.ReceiveNext();
+                NetworkVelocity = (Vector3)stream.ReceiveNext();
+                NetworkPosition = (Vector3)stream.ReceiveNext();
+                PrevNetworkPosition = (Vector3)stream.ReceiveNext();
+                time2 = info.timestamp;
+                time1 = PhotonNetwork.Time - time2;
+                time2 = PhotonNetwork.Time;
+                SmoothFact = 1/time1;
+                TimeOfSending = info.timestamp;
+                PositionWhenReceived = this.transform.position;
+                NowTime = PhotonNetwork.Time;
+                reset=true;
             }
         }
     }

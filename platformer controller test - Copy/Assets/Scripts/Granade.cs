@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using Photon.Pun;
+using EZCameraShake;
 
 
 public class Granade : MonoBehaviour {
@@ -13,6 +14,8 @@ public class Granade : MonoBehaviour {
 	//refferenc to the particleSystem Prefab
 	public GameObject destroyEffect;
 	public PhotonView PV;
+	public float force = 10f;
+
 
 
 	// TRIGGERS THE GRANADE GAMEOBJECT DESTRUCTION FUNCTION
@@ -35,7 +38,14 @@ public class Granade : MonoBehaviour {
 						pView.RPC("ApplyDamage", RpcTarget.All, myDamage);
 					}
 				}
+				Rigidbody2D rb = nearbyObject.GetComponent<Rigidbody2D>();
+				if(rb != null){
+					float distance = 3 - Vector3.Distance(rb.gameObject.transform.position , this.transform.position);
+					Vector3 direction = (rb.gameObject.transform.position - this.transform.position).normalized;
+					rb.AddForce(direction * distance * 500f);
+				}
 			}
 		}
+		CameraShaker.Instance.ShakeOnce(4f, 2f,.2f,1f);
 	} 
 }
