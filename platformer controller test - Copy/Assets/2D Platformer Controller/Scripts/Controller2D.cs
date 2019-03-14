@@ -42,9 +42,12 @@ public class Controller2D : RaycastController
             theScaleChild2.y = 1.5f;
             transform.GetChild(2).localScale = theScaleChild2;
             */
-            Vector3 theScaleChild = transform.GetChild(5).localScale;
+            Vector3 theScaleChild = transform.GetChild(6).localScale;
             theScaleChild.x = 1;
-            transform.GetChild(5).localScale = theScaleChild;
+            transform.GetChild(6).localScale = theScaleChild;
+            Vector3 theScaleChildSword = transform.GetChild(4).localScale;
+            theScaleChildSword.x = 1;
+            transform.GetChild(4).localScale = theScaleChildSword;
             Vector3 theScaleChild2 = transform.GetChild(3).localScale;
             theScaleChild2.y = 1.5f;
             transform.GetChild(3).localScale = theScaleChild2;
@@ -65,9 +68,12 @@ public class Controller2D : RaycastController
             theScaleChild2.y = -1.5f;
             transform.GetChild(2).localScale = theScaleChild2;
             */
-            Vector3 theScaleChild = transform.GetChild(5).localScale;
+            Vector3 theScaleChild = transform.GetChild(6).localScale;
             theScaleChild.x = -1;
-            transform.GetChild(5).localScale = theScaleChild;
+            transform.GetChild(6).localScale = theScaleChild;
+            Vector3 theScaleChildSword = transform.GetChild(4).localScale;
+            theScaleChildSword.x = -1;
+            transform.GetChild(4).localScale = theScaleChildSword;
             Vector3 theScaleChild2 = transform.GetChild(3).localScale;
             theScaleChild2.y = -1.5f;
             transform.GetChild(3).localScale = theScaleChild2;

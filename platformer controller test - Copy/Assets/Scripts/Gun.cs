@@ -31,13 +31,16 @@ public class Gun : MonoBehaviour {
 		float rotZ = Mathf.Atan2(difference.y, difference.x) * Mathf.Rad2Deg;
 		transform.Find("gun").rotation = Quaternion.Euler(0f, 0f, rotZ + offset);
 		if(transform.Find("gun").rotation.eulerAngles.z >= 90 && transform.Find("gun").rotation.eulerAngles.z <= 270){
-			controller.FaceDirForWeapon = -1;
+			controller.FaceDirForWeapon = -1; 
+			controller.Flip(-1);
 		}
 		if(transform.Find("gun").rotation.eulerAngles.z <= 89 && transform.Find("gun").rotation.eulerAngles.z >= 0){
 			controller.FaceDirForWeapon = 1;
+			controller.Flip(1);
 		}
 		if(transform.Find("gun").rotation.eulerAngles.z <= 360 && transform.Find("gun").rotation.eulerAngles.z >= 271){
 			controller.FaceDirForWeapon = 1;
+			controller.Flip(1);
 		}
 	}
 }

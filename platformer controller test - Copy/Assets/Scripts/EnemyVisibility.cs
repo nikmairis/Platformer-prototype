@@ -32,10 +32,10 @@ public class EnemyVisibility : MonoBehaviour {
 			if(hit){
 				if(hit.transform.tag == "Avatar"){
 					go.transform.parent.gameObject.transform.Find("gun").GetComponent<SpriteRenderer>().enabled = true;
-					go.transform.parent.gameObject.transform.GetChild(5).GetComponent<SpriteRenderer>().enabled = true;
+					go.transform.parent.gameObject.transform.GetChild(6).GetComponent<SpriteRenderer>().enabled = true;
 				}else{
 					go.transform.parent.gameObject.transform.Find("gun").GetComponent<SpriteRenderer>().enabled = false;
-					go.transform.parent.gameObject.transform.GetChild(5).GetComponent<SpriteRenderer>().enabled = false;
+					go.transform.parent.gameObject.transform.GetChild(6).GetComponent<SpriteRenderer>().enabled = false;
 				}
 			}
 			Debug.Log(go.transform.position);

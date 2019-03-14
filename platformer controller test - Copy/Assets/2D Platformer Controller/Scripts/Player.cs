@@ -151,6 +151,18 @@ public class Player : MonoBehaviour, IPunObservable
             velocity.y += DashSpeedy;
 
         }
+        if(directionalInput.x == 0){
+            if(controller.FaceDirForWeapon == 1){
+            velocity.x += DashSpeedx;
+            velocity.y += DashSpeedy;
+
+            }
+            if(controller.FaceDirForWeapon == -1){
+            velocity.x -= DashSpeedx;
+            velocity.y += DashSpeedy;
+
+        }
+        }
 
     }
     public void SetDirectionalInput(Vector2 input)

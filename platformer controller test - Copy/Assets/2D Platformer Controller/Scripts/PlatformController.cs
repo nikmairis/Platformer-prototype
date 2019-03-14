@@ -1,9 +1,11 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
+using Photon.Pun;
 namespace testprojekts{
 public class PlatformController : RaycastController
 {
     public LayerMask passengerMask;
+    private PhotonView PV;
 
     public Vector3[] localWaypoints;
     private Vector3[] globalWaypoints;
@@ -30,6 +32,7 @@ public class PlatformController : RaycastController
         {
             globalWaypoints[i] = localWaypoints[i] + transform.position;
         }
+        PV = GetComponent<PhotonView>();
     }
 
     private void Update()
@@ -41,7 +44,9 @@ public class PlatformController : RaycastController
         CalculatePassengerMovement(velocity);
 
         MovePassengers(true);
+        if(PhotonNetwork.IsMasterClient){
         transform.Translate(velocity);
+        }
         MovePassengers(false);
     }
 

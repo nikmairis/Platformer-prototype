@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Photon.Pun;
 using UnityEngine;
 using Photon.Realtime;
+using System.IO;
 namespace testprojekts{
 
 public class AvatarSetup : MonoBehaviour, IPunObservable {
@@ -14,8 +15,10 @@ public class AvatarSetup : MonoBehaviour, IPunObservable {
 	public int characterValue;
 	//Players current health
 	public int playerHealth;
+	private int DefaultHealth;
 	//Players default damage
 	public int playerDamage;
+	public Vector3 LocalPositionTemp;
 
 	/*
 	-->>> Possible end game results could be stored here <<<--
@@ -31,10 +34,13 @@ public class AvatarSetup : MonoBehaviour, IPunObservable {
 	private string[] LastName = new string[] { "Last1", "Last2", "Last3", "Last4", "Last5" };	
 	// Name text object
 	public  TextMesh NameText;
+	public float DeathTimer = 0;
+	public GameObject DeathParticle;
 
 
 	// Use this for initialization
 	void Start () {
+		DefaultHealth = playerHealth;
 		if(AvatarSetup.avatarSetup == null){
 			AvatarSetup.avatarSetup = this;
 		}
@@ -46,6 +52,7 @@ public class AvatarSetup : MonoBehaviour, IPunObservable {
 			PV.RPC("RPC_AddCharacter", RpcTarget.AllBuffered, PlayerInfo.PI.mySelectedCharacter);
 		}
 		NameText.text = PV.Owner.NickName;
+		LocalPositionTemp =  this.transform.position;
 	}
 	
 
@@ -66,19 +73,39 @@ public class AvatarSetup : MonoBehaviour, IPunObservable {
 
 		}
 	}
+	void Update(){
+		if(playerHealth <= 0){
+			if(DeathTimer == 0)
+			PV.RPC("RPC_BloodEffect", RpcTarget.All, this.transform.position);
+			this.transform.position = LocalPositionTemp + new Vector3(0,0,-100);
+			GetComponent<PlayerInput>().enabled = false;
+			GetComponent<AvatarCombat>().enabled = false;
+			DeathTimer += Time.deltaTime;
+			if(DeathTimer >=4){
+				GetComponent<PlayerInput>().enabled = true;
+				GetComponent<AvatarCombat>().enabled = true;
+				DeathTimer = 0;
+				playerHealth = DefaultHealth;
+				this.transform.position = LocalPositionTemp;
+			}
+		}
+	}
+	[PunRPC]
+	void RPC_BloodEffect(Vector3 position){
+		Instantiate(DeathParticle, position, this.transform.rotation);
+	}
 
-
-	//!!!!!!!DAMAGE APLYING RPC!!!!!!!
+	//!!!!!!!!DAMAGE APLYING RPC!!!!!!!!\\
 	[PunRPC]
 	public void ApplyDamage(int Damage){
 		playerHealth -= Damage;
 	}
-
+	//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\\
 
 	// HEALTH SYNC
 	 public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
         {
-            if(stream.IsWriting){
+            if(stream.IsWriting && PV.IsMine){
                 stream.SendNext(playerHealth);
             }else{
                 playerHealth = (int)stream.ReceiveNext();

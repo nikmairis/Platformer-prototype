@@ -27,8 +27,10 @@ public class AvatarCombat : MonoBehaviour {
 	// Refference to the Granade Prefab
 	public GameObject Granade;
 	//Projectile GameObject
+	[HideInInspector]
 	public GameObject myProjectile;
 	//Granade GameObject
+	[HideInInspector]
 	public GameObject myGranade;
 	// Granade throwing default force
 	public float ThrowForce = 100f;
@@ -37,6 +39,13 @@ public class AvatarCombat : MonoBehaviour {
 	private int bulletCount;
 	private int granadeCount;
 	private float shootTimer = 0;
+	private float SlashTimer = 0;
+	private int WeaponEquipped = 0;
+	private bool SwordSlot = true;
+	public Transform AttackPos;
+	public float swordAttackRadius;
+	private bool IsSwinging;
+
 
 
 
@@ -61,6 +70,7 @@ public class AvatarCombat : MonoBehaviour {
 
 	void Update () {
 		text2.text = avatarSetup.playerHealth.ToString();
+		//transform.Find("Sword").GetChild(0).transform.GetComponent<Animator>().SetBool("IsSwinging", IsSwinging);
 		if(!PV.IsMine){
 			return;
 		}else{
@@ -78,22 +88,26 @@ public class AvatarCombat : MonoBehaviour {
 			}
 			*/
 
+			if(Input.GetKeyDown(KeyCode.Q)){
+				PV.RPC("RPC_WeaponSwitch", RpcTarget.All, SwordSlot);
+			}
+			
 			//button for projectile shooting
 			if(Input.GetMouseButton(0)){
-				shootTimer += Time.deltaTime;
-				//ProjectileShoot();
-				Vector3 ShootDirection = rayOrigin.transform.rotation.eulerAngles - new Vector3(0, 0, 90);
-				Vector3 SendPosition = rayOrigin.transform.position;
-				if(bulletCount >=1 && shootTimer >=0.1f){
-				shootTimer = 0f;
-				PV.RPC("RPC_ProjectileShoot", RpcTarget.All, ShootDirection, SendPosition );
-				bulletCount--;
-				}
-				
+				if(!SwordSlot){
+				ProjectileShoot();
+				}else{
+				SwordSlash();
+				}				
+			}
+			SlashTimer +=Time.deltaTime;
+			if(Input.GetMouseButtonUp(0)){
+				IsSwinging = false;
+				PV.RPC("RPC_SwingSword", RpcTarget.All, IsSwinging);
 			}
 		if(granadeCount >=1){
 			// Granade throw ChargeUp
-			if(Input.GetKey(KeyCode.G)){
+			if(Input.GetKey(KeyCode.G) || Input.GetMouseButton(1)){
 				//Vector3 MousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
 				throwTimer += Time.deltaTime*10;
 				Vector3 meterWidth = this.transform.Find("ThrowBar").localScale;
@@ -108,7 +122,7 @@ public class AvatarCombat : MonoBehaviour {
 
 
 			//Granade throw release
-			if(Input.GetKeyUp(KeyCode.G)){
+			if(Input.GetKeyUp(KeyCode.G) || Input.GetMouseButtonUp(1)){
 				Vector3 test = this.transform.GetComponent<Player>().velocity.normalized/4;
 				Vector3 MousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
 				if(throwTimer < 2) throwTimer = 2;
@@ -128,16 +142,33 @@ public class AvatarCombat : MonoBehaviour {
 	}
 
 
-	/*
 	//Mechanic for projectile shooting
 	void ProjectileShoot(){
-		var ShootDirection = rayOrigin.transform.rotation.eulerAngles - new Vector3(0, 0, 90);
-				myProjectile = PhotonNetwork.Instantiate(Path.Combine("PhotonPrefabs", "Projectile"), rayOrigin.position, Quaternion.Euler(ShootDirection));
-				myProjectile.GetComponent<Projectile>().myDamage = avatarSetup.playerDamage;
-				myProjectile.GetComponent<Projectile>().ShootersColider = this.GetComponent<BoxCollider2D>();
-				Debug.Log(ShootDirection);
+		shootTimer += Time.deltaTime;
+			Vector3 ShootDirection = rayOrigin.transform.rotation.eulerAngles - new Vector3(0, 0, 90);
+			Vector3 SendPosition = rayOrigin.transform.position;
+			if(bulletCount >=1 && shootTimer >=0.1f){
+			shootTimer = 0f;
+			PV.RPC("RPC_ProjectileShoot", RpcTarget.All, ShootDirection, SendPosition );
+			bulletCount--;
+			}
 	}
-	*/
+	void SwordSlash(){
+		if(SlashTimer >= 0.15f){
+		IsSwinging = true;
+		PV.RPC("RPC_SwingSword", RpcTarget.All, IsSwinging);
+		Collider2D[] enemiesToDamage = Physics2D.OverlapCircleAll(AttackPos.position, swordAttackRadius);
+		foreach(Collider2D EnemyToDamage in enemiesToDamage){
+				if(EnemyToDamage.transform.tag == "Avatar"){
+					PhotonView pView = EnemyToDamage.transform.GetComponent<PhotonView>();
+					if(pView != null && !pView.IsMine){
+						pView.RPC("ApplyDamage", RpcTarget.All, avatarSetup.playerDamage);
+					}
+				}
+			}
+			SlashTimer = 0;
+		}
+	}
 
 	[PunRPC]
 	void RPC_ProjectileShoot(Vector3 ShootDirection, Vector3 Position, PhotonMessageInfo info){
@@ -146,6 +177,23 @@ public class AvatarCombat : MonoBehaviour {
 		myProjectile.GetComponent<Projectile>().myDamage = avatarSetup.playerDamage;
 		myProjectile.GetComponent<Projectile>().ShootersColider = this.GetComponent<BoxCollider2D>();
 		myProjectile.GetComponent<Projectile>().PV = PV;
+	}
+	[PunRPC]
+	void RPC_WeaponSwitch(bool current, PhotonMessageInfo info){
+		if(current){
+			transform.Find("gun").GetChild(0).transform.GetComponent<SpriteRenderer>().enabled = true;
+			transform.Find("Sword").GetChild(0).transform.GetComponent<SpriteRenderer>().enabled = false;
+			SwordSlot = false;
+		}else{
+			transform.Find("gun").GetChild(0).transform.GetComponent<SpriteRenderer>().enabled = false;
+			transform.Find("Sword").GetChild(0).transform.GetComponent<SpriteRenderer>().enabled = true;
+			SwordSlot = true;
+		}
+	}
+
+	[PunRPC]
+	void RPC_SwingSword(bool IsSwinging, PhotonMessageInfo info){
+		transform.Find("Sword").GetChild(0).transform.GetComponent<Animator>().SetBool("IsSwinging", IsSwinging);
 	}
 
 
@@ -217,5 +265,10 @@ public class AvatarCombat : MonoBehaviour {
         }
     }
 
-}
+
+	void OnDrawGizmosSelected(){
+		Gizmos.color = Color.red;
+		Gizmos.DrawWireSphere(AttackPos.position, swordAttackRadius);
+	}
+    }
 }
