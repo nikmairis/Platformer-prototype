@@ -4,6 +4,7 @@ namespace testprojekts{
 public class PlayerInput : MonoBehaviour
 {
     private Player player;
+    public GameObject JumpParticle;
 
     private void Start()
     {
@@ -16,7 +17,8 @@ public class PlayerInput : MonoBehaviour
         player.SetDirectionalInput(directionalInput);
 
         if (Input.GetButtonDown("Jump"))
-        {
+        {   
+            Instantiate(JumpParticle, this.transform.position + new Vector3(0,-0.5f,0), this.transform.rotation);
             player.OnJumpInputDown();
         }
 

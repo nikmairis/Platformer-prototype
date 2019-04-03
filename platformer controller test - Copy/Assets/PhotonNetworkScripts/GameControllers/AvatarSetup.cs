@@ -7,8 +7,8 @@ using System.IO;
 namespace testprojekts{
 
 public class AvatarSetup : MonoBehaviour, IPunObservable {
-
-	private PhotonView PV;
+	[HideInInspector]
+	public PhotonView PV;
 	//Players gameobject
 	public GameObject myCharacter;
 	//Character selection value
@@ -19,6 +19,7 @@ public class AvatarSetup : MonoBehaviour, IPunObservable {
 	//Players default damage
 	public int playerDamage;
 	public Vector3 LocalPositionTemp;
+	public int playerDamageDealt = 0;
 
 	/*
 	-->>> Possible end game results could be stored here <<<--
@@ -40,7 +41,6 @@ public class AvatarSetup : MonoBehaviour, IPunObservable {
 
 	// Use this for initialization
 	void Start () {
-		DefaultHealth = playerHealth;
 		if(AvatarSetup.avatarSetup == null){
 			AvatarSetup.avatarSetup = this;
 		}
@@ -57,27 +57,33 @@ public class AvatarSetup : MonoBehaviour, IPunObservable {
 	
 
 	// SETS UP SELECTED CHARACTER AND IT'S PARAMETERS.
+	////!!!!!!!!!!!!!!!!PLAYER CLASSES SETUP!!!!!!!!!!!!!!\\\\////!!!!!!!!!!!!!!!!PLAYER CLASSES SETUP!!!!!!!!!!!!!!\\\\
+	////!!!!!!!!!!!!!!!!PLAYER CLASSES SETUP!!!!!!!!!!!!!!\\\\////!!!!!!!!!!!!!!!!PLAYER CLASSES SETUP!!!!!!!!!!!!!!\\\\
 	[PunRPC]
 	void RPC_AddCharacter(int whichCharacter){
 		characterValue = whichCharacter;
 		myCharacter = Instantiate(PlayerInfo.PI.allCharacters[whichCharacter], transform.position, transform.rotation, this.transform);
 		if(characterValue == 1){
 			playerHealth = 200;
+			DefaultHealth = playerHealth;
 			this.gameObject.GetComponent<Player>().moveSpeed = 7f;
 			this.gameObject.GetComponent<Player>().DashSpeedx = 25f;
 		}
 		else{
 			playerHealth = 100;
+			DefaultHealth = playerHealth;
 			this.gameObject.GetComponent<Player>().moveSpeed = 14f;
 			this.gameObject.GetComponent<Player>().DashSpeedx = 35f;
 
 		}
 	}
+	////!!!!!!!!!!!!!!!!PLAYER CLASSES SETUP!!!!!!!!!!!!!!\\\\////!!!!!!!!!!!!!!!!PLAYER CLASSES SETUP!!!!!!!!!!!!!!\\\\
+	////!!!!!!!!!!!!!!!!PLAYER CLASSES SETUP!!!!!!!!!!!!!!\\\\////!!!!!!!!!!!!!!!!PLAYER CLASSES SETUP!!!!!!!!!!!!!!\\\\
 	void Update(){
 		if(playerHealth <= 0){
 			if(DeathTimer == 0)
 			PV.RPC("RPC_BloodEffect", RpcTarget.All, this.transform.position);
-			this.transform.position = LocalPositionTemp + new Vector3(0,0,-100);
+			this.transform.position = LocalPositionTemp + new Vector3(100,0,-100);
 			GetComponent<PlayerInput>().enabled = false;
 			GetComponent<AvatarCombat>().enabled = false;
 			DeathTimer += Time.deltaTime;
@@ -94,7 +100,10 @@ public class AvatarSetup : MonoBehaviour, IPunObservable {
 	void RPC_BloodEffect(Vector3 position){
 		Instantiate(DeathParticle, position, this.transform.rotation);
 	}
-
+	[PunRPC]
+	public void IncreaseDamageDealth(int Damage){
+		playerDamageDealt += Damage;
+	}
 	//!!!!!!!!DAMAGE APLYING RPC!!!!!!!!\\
 	[PunRPC]
 	public void ApplyDamage(int Damage){

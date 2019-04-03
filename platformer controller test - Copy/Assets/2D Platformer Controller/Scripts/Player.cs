@@ -55,6 +55,10 @@ public class Player : MonoBehaviour, IPunObservable
     public bool reset;
     public float counter;
     public double SmoothFact =1;
+    [HideInInspector]
+    public bool grappling = false;
+    [HideInInspector]
+    public Vector3 GrapplePos;
 
     public void Awake(){
         PV = GetComponent<PhotonView>();
@@ -97,7 +101,15 @@ public class Player : MonoBehaviour, IPunObservable
         CalculateVelocity();
         HandleWallSliding();
         controller.Flip(controller.FaceDirForWeapon);
+        if(grappling == false){
         controller.Move(velocity * Time.deltaTime, directionalInput);
+        }else{
+            transform.Translate((GrapplePos - this.transform.position).normalized* Time.deltaTime * 35f);
+            if(Vector3.Distance(GrapplePos, this.transform.position) < 1f){
+                velocity = new Vector3(0,0,0);
+                grappling = false;
+            }
+        }
 
 
         if(IsDashing){
@@ -264,6 +276,9 @@ public class Player : MonoBehaviour, IPunObservable
         else{
             velocity.y += gravity * Time.deltaTime;
         }
+    }
+    void OnCollisionEnter2D(){
+        grappling = false;
     }
 
         public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)

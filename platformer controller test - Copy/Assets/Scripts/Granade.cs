@@ -38,6 +38,7 @@ public class Granade : MonoBehaviour {
 					if(pView != null){
 						if(PV.IsMine){
 						pView.RPC("ApplyDamage", RpcTarget.All, myDamage);
+						PV.RPC("IncreaseDamageDealth", RpcTarget.All, myDamage);
 						}
 					}
 				}

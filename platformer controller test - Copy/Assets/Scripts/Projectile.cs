@@ -57,6 +57,7 @@ public class Projectile : MonoBehaviour {
 				PhotonView pView = col.transform.GetComponent<PhotonView>();
 					if(pView && PV.IsMine){
 						pView.RPC("ApplyDamage", RpcTarget.All, myDamage);
+						PV.RPC("IncreaseDamageDealth", RpcTarget.All, myDamage);
 					}
 				Debug.Log("Hit an enemy!");
 				DestroyProjectile();

@@ -45,12 +45,20 @@ public class AvatarCombat : MonoBehaviour {
 	public Transform AttackPos;
 	public float swordAttackRadius;
 	private bool IsSwinging;
-
+	TrajectoryPredictor tp;
 
 
 
 	// Start function for initialization
 	void Start () {
+		//////////////////////////////
+		tp = gameObject.GetComponent<TrajectoryPredictor>();
+		tp.predictionType = TrajectoryPredictor.predictionMode.Prediction2D;
+		tp.drawDebugOnPrediction = true;
+		tp.accuracy = 0.99f;
+		tp.lineWidth = 0.2f;
+		tp.iterationLimit = 250;
+		//////////////////////////////
 		bulletCount = 30;
 		granadeCount = 5;
 		PhotonNetwork.SendRate = 30	;
@@ -76,6 +84,8 @@ public class AvatarCombat : MonoBehaviour {
 		}else{
 			AmmoDisplayManager.ammo = bulletCount;
 			AmmoDisplayManager.granades = granadeCount;
+			PowerBarManager.DamageDealt = avatarSetup.playerDamageDealt;
+			PowerUps();
 			/*
 							****************************************************
 							!!!!!!!   Mechanic for shooting with Raycasts   !!!!
@@ -109,13 +119,21 @@ public class AvatarCombat : MonoBehaviour {
 			// Granade throw ChargeUp
 			if(Input.GetKey(KeyCode.G) || Input.GetMouseButton(1)){
 				//Vector3 MousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-				throwTimer += Time.deltaTime*10;
+				throwTimer += Time.deltaTime*8;
 				Vector3 meterWidth = this.transform.Find("ThrowBar").localScale;
 				float scaleSize = throwTimer / 5;
 				if(scaleSize > 1) scaleSize =1;
 				meterWidth.x = scaleSize;
 				this.transform.Find("ThrowBar").localScale = meterWidth;
-
+				Vector3 test = this.transform.GetComponent<Player>().velocity.normalized/4;
+				Vector3 MousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+				if(throwTimer < 2) throwTimer = 2;
+				if(throwTimer > 5) throwTimer = 5;
+				ThrowForce = 7 * throwTimer;
+				Vector3 SendDirection = ((MousePos - rayOrigin.transform.position).normalized+ test) * ThrowForce;
+				Vector3 SendPosition = this.transform.position;
+				tp.debugLineDuration = Time.unscaledDeltaTime;
+				tp.Predict2D(SendPosition , SendDirection, Physics2D.gravity);
 
 				//GranadeThrow(MousePos);
 			}
@@ -127,7 +145,7 @@ public class AvatarCombat : MonoBehaviour {
 				Vector3 MousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
 				if(throwTimer < 2) throwTimer = 2;
 				if(throwTimer > 5) throwTimer = 5;
-				ThrowForce = 250 * throwTimer;
+				ThrowForce = 7 * throwTimer;
 				Vector3 SendDirection = ((MousePos - rayOrigin.transform.position).normalized+ test) * ThrowForce;
 				Vector3 SendPosition = this.transform.position;
 				PV.RPC("RPC_ThrowBomb", RpcTarget.All, SendDirection , SendPosition);
@@ -140,6 +158,28 @@ public class AvatarCombat : MonoBehaviour {
 		}
 		}
 	}
+
+    //!!!!!!!!!!!!POWERUPS!!!!!!!!!!!!\\//!!!!!!!!!!!!POWERUPS!!!!!!!!!!!!\\//!!!!!!!!!!!!POWERUPS!!!!!!!!!!!!\\
+	//!!!!!!!!!!!!POWERUPS!!!!!!!!!!!!\\//!!!!!!!!!!!!POWERUPS!!!!!!!!!!!!\\//!!!!!!!!!!!!POWERUPS!!!!!!!!!!!!\\
+	void PowerUps(){
+		if(avatarSetup.playerDamageDealt >= 100){
+			if(avatarSetup.characterValue == 1){
+				avatarSetup.playerHealth += 100;
+				avatarSetup.playerDamageDealt = 0;
+			}
+			if(avatarSetup.characterValue == 0){
+				avatarSetup.playerDamage = 10;
+				Invoke("ResetDamage", 5f);
+				avatarSetup.playerDamageDealt = 0;
+			}
+		}
+	}
+	void ResetDamage(){
+		avatarSetup.playerDamage = 5;
+	}
+	//!!!!!!!!!!!!POWERUPS!!!!!!!!!!!!\\//!!!!!!!!!!!!POWERUPS!!!!!!!!!!!!\\//!!!!!!!!!!!!POWERUPS!!!!!!!!!!!!\\
+	//!!!!!!!!!!!!POWERUPS!!!!!!!!!!!!\\//!!!!!!!!!!!!POWERUPS!!!!!!!!!!!!\\//!!!!!!!!!!!!POWERUPS!!!!!!!!!!!!\\
+
 
 
 	//Mechanic for projectile shooting
@@ -203,7 +243,8 @@ public class AvatarCombat : MonoBehaviour {
 		myGranade = Instantiate(Granade, Position, this.transform.rotation);
 			Physics2D.IgnoreCollision(myGranade.GetComponent<CapsuleCollider2D>(), this.gameObject.GetComponent<BoxCollider2D>());
 			Rigidbody2D rb2d = myGranade.GetComponent<Rigidbody2D>();
-			rb2d.AddForce(Direction);
+			//rb2d.AddForce(Direction);
+			rb2d.velocity = Direction;
 			rb2d.AddTorque(5f);
 			myGranade.GetComponent<Granade>().PV = PV;
 	}
