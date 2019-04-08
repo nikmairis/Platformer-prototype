@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using Photon.Pun;
@@ -52,7 +53,7 @@ public class AvatarCombat : MonoBehaviour {
 	// Start function for initialization
 	void Start () {
 		//////////////////////////////
-		tp = gameObject.GetComponent<TrajectoryPredictor>();
+		tp = gameObject.AddComponent<TrajectoryPredictor>();
 		tp.predictionType = TrajectoryPredictor.predictionMode.Prediction2D;
 		tp.drawDebugOnPrediction = true;
 		tp.accuracy = 0.99f;
@@ -77,7 +78,15 @@ public class AvatarCombat : MonoBehaviour {
 
 
 	void Update () {
+		Debug.Log(text2.text);
+		try{
+			Debug.Log(avatarSetup.playerHealth.ToString());
 		text2.text = avatarSetup.playerHealth.ToString();
+		}
+		catch(Exception e){
+			
+		}
+		
 		//transform.Find("Sword").GetChild(0).transform.GetComponent<Animator>().SetBool("IsSwinging", IsSwinging);
 		if(!PV.IsMine){
 			return;
