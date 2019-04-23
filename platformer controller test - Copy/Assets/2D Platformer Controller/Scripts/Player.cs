@@ -26,7 +26,8 @@ public class Player : MonoBehaviour, IPunObservable
     public Vector2 wallLeap;
 
     public bool canDoubleJump;
-    private bool isDoubleJumping = false;
+    [HideInInspector]
+    public bool isDoubleJumping = false;
 
     public float wallSlideSpeedMax = 3f;
     public float wallStickTime = .25f;

@@ -10,7 +10,7 @@ namespace testprojekts{
 
 public class AvatarCombat : MonoBehaviour {
 
-	private PhotonView PV;
+	public PhotonView PV;
 	//singleton
 	private AvatarSetup avatarSetup;
 	// Tip of a weapon transform
@@ -33,6 +33,7 @@ public class AvatarCombat : MonoBehaviour {
 	//Granade GameObject
 	[HideInInspector]
 	public GameObject myGranade;
+	public GameObject LaunchableGranade;
 	// Granade throwing default force
 	public float ThrowForce = 100f;
 	//Granade strength channeling timer initialization
@@ -40,18 +41,23 @@ public class AvatarCombat : MonoBehaviour {
 	private int bulletCount;
 	private int granadeCount;
 	private float shootTimer = 0;
+	public float shootFrequency = 0.1f;
 	private float SlashTimer = 0;
 	private int WeaponEquipped = 0;
 	private bool SwordSlot = true;
 	public Transform AttackPos;
 	public float swordAttackRadius;
 	private bool IsSwinging;
+	public int GunID = 0;
+	public int ShootStyle = 1;
 	TrajectoryPredictor tp;
+	WeaponManager weaponManager;
 
 
 
 	// Start function for initialization
 	void Start () {
+		weaponManager = this.GetComponent<WeaponManager>();
 		//////////////////////////////
 		tp = gameObject.AddComponent<TrajectoryPredictor>();
 		tp.predictionType = TrajectoryPredictor.predictionMode.Prediction2D;
@@ -107,7 +113,7 @@ public class AvatarCombat : MonoBehaviour {
 			}
 			*/
 
-			if(Input.GetKeyDown(KeyCode.Q)){
+			if(Input.GetKeyDown(KeyCode.Q) && weaponManager.HasWeapon == true){
 				PV.RPC("RPC_WeaponSwitch", RpcTarget.All, SwordSlot);
 			}
 			
@@ -126,7 +132,7 @@ public class AvatarCombat : MonoBehaviour {
 			}
 		if(granadeCount >=1){
 			// Granade throw ChargeUp
-			if(Input.GetKey(KeyCode.G) || Input.GetMouseButton(1)){
+			if(Input.GetMouseButton(1)){
 				//Vector3 MousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
 				throwTimer += Time.deltaTime*8;
 				Vector3 meterWidth = this.transform.Find("ThrowBar").localScale;
@@ -149,7 +155,7 @@ public class AvatarCombat : MonoBehaviour {
 
 
 			//Granade throw release
-			if(Input.GetKeyUp(KeyCode.G) || Input.GetMouseButtonUp(1)){
+			if(Input.GetMouseButtonUp(1)){
 				Vector3 test = this.transform.GetComponent<Player>().velocity.normalized/4;
 				Vector3 MousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
 				if(throwTimer < 2) throwTimer = 2;
@@ -196,7 +202,7 @@ public class AvatarCombat : MonoBehaviour {
 		shootTimer += Time.deltaTime;
 			Vector3 ShootDirection = rayOrigin.transform.rotation.eulerAngles - new Vector3(0, 0, 90);
 			Vector3 SendPosition = rayOrigin.transform.position;
-			if(bulletCount >=1 && shootTimer >=0.1f){
+			if(bulletCount >=1 && shootTimer >=shootFrequency){
 			shootTimer = 0f;
 			PV.RPC("RPC_ProjectileShoot", RpcTarget.All, ShootDirection, SendPosition );
 			bulletCount--;
@@ -221,20 +227,21 @@ public class AvatarCombat : MonoBehaviour {
 
 	[PunRPC]
 	void RPC_ProjectileShoot(Vector3 ShootDirection, Vector3 Position, PhotonMessageInfo info){
-		myProjectile = Instantiate(Projectile, Position, Quaternion.Euler(ShootDirection));
-		Physics2D.IgnoreCollision(info.photonView.gameObject.transform.GetComponent<BoxCollider2D>(), myProjectile.GetComponent<BoxCollider2D>());
-		myProjectile.GetComponent<Projectile>().myDamage = avatarSetup.playerDamage;
-		myProjectile.GetComponent<Projectile>().ShootersColider = this.GetComponent<BoxCollider2D>();
-		myProjectile.GetComponent<Projectile>().PV = PV;
+		if(ShootStyle == 1)
+		Regular(ShootDirection, Position, info.photonView.gameObject.transform.GetComponent<BoxCollider2D>());
+		if(ShootStyle == 2)
+		ConeSpray(ShootDirection, Position, info.photonView.gameObject.transform.GetComponent<BoxCollider2D>());
+		if(ShootStyle == 3)
+		GranadeLauncher(ShootDirection, Position, info.photonView.gameObject.transform.GetComponent<BoxCollider2D>());
 	}
 	[PunRPC]
 	void RPC_WeaponSwitch(bool current, PhotonMessageInfo info){
 		if(current){
-			transform.Find("gun").GetChild(0).transform.GetComponent<SpriteRenderer>().enabled = true;
+			transform.Find("gun").GetChild(GunID).transform.GetComponent<SpriteRenderer>().enabled = true;
 			transform.Find("Sword").GetChild(0).transform.GetComponent<SpriteRenderer>().enabled = false;
 			SwordSlot = false;
 		}else{
-			transform.Find("gun").GetChild(0).transform.GetComponent<SpriteRenderer>().enabled = false;
+			transform.Find("gun").GetChild(GunID).transform.GetComponent<SpriteRenderer>().enabled = false;
 			transform.Find("Sword").GetChild(0).transform.GetComponent<SpriteRenderer>().enabled = true;
 			SwordSlot = true;
 		}
@@ -301,6 +308,59 @@ public class AvatarCombat : MonoBehaviour {
 				line.SetPosition(0, rayOrigin.position);
              line.SetPosition(1, MousePos);
 			}
+	}
+
+	void ConeSpray(Vector3 ShootDirection, Vector3 Position, BoxCollider2D Col){
+		Vector3 ConeDirection = ShootDirection - new Vector3(0, 0, 10);
+		Vector3 ConeDirection2 = ShootDirection - new Vector3(0, 0, -10);
+		myProjectile = Instantiate(Projectile, Position, Quaternion.Euler(ShootDirection));
+		GameObject myProjectile2 = Instantiate(Projectile, Position, Quaternion.Euler(ConeDirection));
+		GameObject myProjectile3 = Instantiate(Projectile, Position, Quaternion.Euler(ConeDirection2));
+		
+		Physics2D.IgnoreCollision(Col, myProjectile.GetComponent<BoxCollider2D>());
+		Physics2D.IgnoreCollision(Col, myProjectile2.GetComponent<BoxCollider2D>());
+		Physics2D.IgnoreCollision(Col, myProjectile3.GetComponent<BoxCollider2D>());
+		Physics2D.IgnoreCollision(myProjectile.GetComponent<BoxCollider2D>(), myProjectile2.GetComponent<BoxCollider2D>());
+		Physics2D.IgnoreCollision(myProjectile.GetComponent<BoxCollider2D>(), myProjectile3.GetComponent<BoxCollider2D>());
+		Physics2D.IgnoreCollision(myProjectile3.GetComponent<BoxCollider2D>(), myProjectile2.GetComponent<BoxCollider2D>());
+
+
+		myProjectile.GetComponent<Projectile>().myDamage = avatarSetup.playerDamage;
+		myProjectile.GetComponent<Projectile>().ShootersColider = this.GetComponent<BoxCollider2D>();
+		myProjectile.GetComponent<Projectile>().PV = PV;
+
+		myProjectile2.GetComponent<Projectile>().myDamage = avatarSetup.playerDamage;
+		myProjectile2.GetComponent<Projectile>().ShootersColider = this.GetComponent<BoxCollider2D>();
+		myProjectile2.GetComponent<Projectile>().PV = PV;
+
+		myProjectile3.GetComponent<Projectile>().myDamage = avatarSetup.playerDamage;
+		myProjectile3.GetComponent<Projectile>().ShootersColider = this.GetComponent<BoxCollider2D>();
+		myProjectile3.GetComponent<Projectile>().PV = PV;
+	}
+	void Regular(Vector3 ShootDirection, Vector3 Position, BoxCollider2D Col){
+		myProjectile = Instantiate(Projectile, Position, Quaternion.Euler(ShootDirection));
+
+		Physics2D.IgnoreCollision(Col, myProjectile.GetComponent<BoxCollider2D>());
+
+		myProjectile.GetComponent<Projectile>().myDamage = avatarSetup.playerDamage;
+		myProjectile.GetComponent<Projectile>().ShootersColider = this.GetComponent<BoxCollider2D>();
+		myProjectile.GetComponent<Projectile>().PV = PV;	
+	}
+	void GranadeLauncher(Vector3 ShootDirection, Vector3 Position, BoxCollider2D Col){
+		Vector3 MousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+		Vector3 LaunchDirection = (MousePos- this.transform.position).normalized;
+		float LaunchPower = Vector3.Distance(MousePos, this.transform.position);
+
+		if(LaunchPower <10)
+		LaunchPower =10;
+		if(LaunchPower >32)
+		LaunchPower =32;
+
+		myProjectile = Instantiate(LaunchableGranade, Position, Quaternion.Euler(ShootDirection));
+		Physics2D.IgnoreCollision(Col, myProjectile.GetComponent<CircleCollider2D>());
+		Rigidbody2D rb2d = myProjectile.GetComponent<Rigidbody2D>();
+		myProjectile.GetComponent<TouchExplode>().PV = PV;
+		rb2d.velocity = LaunchDirection * LaunchPower;
 	}
 	 private void OnTriggerEnter2D(Collider2D other)
     {

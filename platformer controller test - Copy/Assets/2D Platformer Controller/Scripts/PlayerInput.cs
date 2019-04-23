@@ -13,12 +13,16 @@ public class PlayerInput : MonoBehaviour
 
     private void Update()
     {
+        
         Vector2 directionalInput = new Vector2(Input.GetAxisRaw("Horizontal"), Input.GetAxisRaw("Vertical"));
+    
         player.SetDirectionalInput(directionalInput);
 
         if (Input.GetButtonDown("Jump"))
-        {   
+        {
+            if(player.isDoubleJumping == false){
             Instantiate(JumpParticle, this.transform.position + new Vector3(0,-0.5f,0), this.transform.rotation);
+            }
             player.OnJumpInputDown();
         }
 
