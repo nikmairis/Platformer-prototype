@@ -15,10 +15,70 @@ public class WeaponManager : MonoBehaviour, IPunObservable {
 
 	void Start () {
 		avatarCombat = this.GetComponent<AvatarCombat>();
+		Instantiate(Guns[avatarCombat.GunID], new Vector3(0,0,0), this.transform.rotation);
 	}
 
 	void Update(){
 		if(Input.GetKeyUp(KeyCode.G) && HasWeapon == true){
+			WeaponDropHandle();
+	}
+	}
+
+
+	public void WeaponDropHandle(){
+		int direction = this.GetComponent<Controller2D>().FaceDirForWeapon;
+		bool CanBeDropped = true;
+		bool NeedsToContinue = true;
+			if(CanBeDropped){
+				Collider2D[] WallCheck = Physics2D.OverlapCircleAll(this.transform.position+ new Vector3(0, 4, 0), 0.1f);
+					foreach(Collider2D nearbyObject in WallCheck){
+						if(nearbyObject.transform.tag == "Tiles")
+						CanBeDropped = false;
+					}
+					if(CanBeDropped){
+						NeedsToContinue = false;
+						WeaponDropCaller(this.transform.position+ new Vector3(0, 4, 0));
+					}
+			}
+			if(NeedsToContinue){
+				CanBeDropped = true;
+				Collider2D[] WallCheck = Physics2D.OverlapCircleAll(this.transform.position+ new Vector3(4*direction, 1, 0), 0.1f);
+					foreach(Collider2D nearbyObject in WallCheck){
+						if(nearbyObject.transform.tag == "Tiles")
+						CanBeDropped = false;
+					}
+					if(CanBeDropped){
+						NeedsToContinue = false;
+						WeaponDropCaller(this.transform.position+ new Vector3(4*direction, 1, 0));
+					}
+			}
+			if(NeedsToContinue){
+				CanBeDropped = true;
+				Collider2D[] WallCheck = Physics2D.OverlapCircleAll(this.transform.position+ new Vector3(-4*direction, 1, 0), 0.1f);
+					foreach(Collider2D nearbyObject in WallCheck){
+						if(nearbyObject.transform.tag == "Tiles")
+						CanBeDropped = false;
+					}
+					if(CanBeDropped){
+						NeedsToContinue = false;
+						WeaponDropCaller(this.transform.position+ new Vector3(-4*direction, 1, 0));
+					}
+			}
+			if(NeedsToContinue){
+				CanBeDropped = true;
+				Collider2D[] WallCheck = Physics2D.OverlapCircleAll(this.transform.position+ new Vector3(0, -4, 0), 0.1f);
+					foreach(Collider2D nearbyObject in WallCheck){
+						if(nearbyObject.transform.tag == "Tiles")
+						CanBeDropped = false;
+					}
+					if(CanBeDropped){
+						NeedsToContinue = false;
+						WeaponDropCaller(this.transform.position+ new Vector3(0, -4, 0));
+					}
+			}
+	}
+
+	public void WeaponDropCaller(Vector3 Position){
 			//drops weapon and switches to sword
 			HasWeapon = false;
 			CanDestroyWeapon = true;
@@ -26,20 +86,14 @@ public class WeaponManager : MonoBehaviour, IPunObservable {
 			avatarCombat.PV.RPC("RPC_WeaponSwitch", RpcTarget.All, false);
 
 			// Spawns the dropped weapon
-			int direction = this.GetComponent<Controller2D>().FaceDirForWeapon;
-			Vector3 position = this.transform.position;
-			avatarCombat.PV.RPC("RPC_DropWeapon", RpcTarget.All, direction, position);
-	}
+			Vector3 position = Position;
+			avatarCombat.PV.RPC("RPC_DropWeapon", RpcTarget.All, position);
 	}
 
+
 	[PunRPC]
-	void RPC_DropWeapon(int direction, Vector3 Position, PhotonMessageInfo info){
-		if(direction == 1){
-			Instantiate(Guns[avatarCombat.GunID], Position + new Vector3(4, 1, 0), this.transform.rotation);
-			}
-			else{
-			Instantiate(Guns[avatarCombat.GunID], Position + new Vector3(-4, 1, 0), this.transform.rotation);
-			}
+	void RPC_DropWeapon(Vector3 Position, PhotonMessageInfo info){
+			Instantiate(Guns[avatarCombat.GunID], Position, this.transform.rotation);
 	}
 	
 	/////// Shooting styles:
@@ -48,7 +102,8 @@ public class WeaponManager : MonoBehaviour, IPunObservable {
 	/////// 3 = Granade Launcher
 	private void OnTriggerEnter2D(Collider2D other)
     {
-		if(!HasWeapon){
+			//Re-enable the if statement, if desire weapons to be obtainable only while no weapon equipped
+	//	if(!HasWeapon){
 			if (other.gameObject.tag == "Gun"){
 				int gunID = other.gameObject.GetComponent<GunID>().ID;
 				avatarCombat.PV.RPC("RPC_WeaponStyle", RpcTarget.All, gunID);
@@ -56,7 +111,7 @@ public class WeaponManager : MonoBehaviour, IPunObservable {
 				avatarCombat.PV.RPC("RPC_WeaponSwitch", RpcTarget.All, true);
 			}
 
-    }
+   // }
 	}
 
 [PunRPC]

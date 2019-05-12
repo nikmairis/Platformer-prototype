@@ -34,6 +34,8 @@ public class AvatarCombat : MonoBehaviour {
 	[HideInInspector]
 	public GameObject myGranade;
 	public GameObject LaunchableGranade;
+	public GameObject Nozzle;
+	private GameObject MyNozzle;
 	// Granade throwing default force
 	public float ThrowForce = 100f;
 	//Granade strength channeling timer initialization
@@ -62,6 +64,8 @@ public class AvatarCombat : MonoBehaviour {
 		tp = gameObject.AddComponent<TrajectoryPredictor>();
 		tp.predictionType = TrajectoryPredictor.predictionMode.Prediction2D;
 		tp.drawDebugOnPrediction = true;
+		tp.drawDebugOnUpdate = true;
+		tp.drawDebugOnStart = true;
 		tp.accuracy = 0.99f;
 		tp.lineWidth = 0.2f;
 		tp.iterationLimit = 250;
@@ -73,6 +77,7 @@ public class AvatarCombat : MonoBehaviour {
 		PV = GetComponent<PhotonView>();
 		avatarSetup = GetComponent<AvatarSetup>();
 		//Linerenderer Debuggingam testējot raycast shooting mechanic
+		/*
 			line = this.gameObject.AddComponent<LineRenderer>();
 			line.startWidth = 0.2f;
 			line.endWidth = 0.1f;
@@ -80,6 +85,7 @@ public class AvatarCombat : MonoBehaviour {
 			line.sortingOrder = 1;
 			line.material = new Material (Shader.Find ("Sprites/Default"));
 			line.material.color = Color.red; 
+			*/
 	}
 
 
@@ -227,6 +233,7 @@ public class AvatarCombat : MonoBehaviour {
 
 	[PunRPC]
 	void RPC_ProjectileShoot(Vector3 ShootDirection, Vector3 Position, PhotonMessageInfo info){
+		MyNozzle = Instantiate(Nozzle, Position - new Vector3(0,0,-0.005f),  Quaternion.Euler(ShootDirection - new Vector3(0, 0, -90)));
 		if(ShootStyle == 1)
 		Regular(ShootDirection, Position, info.photonView.gameObject.transform.GetComponent<BoxCollider2D>());
 		if(ShootStyle == 2)
@@ -237,6 +244,10 @@ public class AvatarCombat : MonoBehaviour {
 	[PunRPC]
 	void RPC_WeaponSwitch(bool current, PhotonMessageInfo info){
 		if(current){
+			transform.Find("gun").GetChild(0).transform.GetComponent<SpriteRenderer>().enabled = false;
+			transform.Find("gun").GetChild(1).transform.GetComponent<SpriteRenderer>().enabled = false;
+			transform.Find("gun").GetChild(2).transform.GetComponent<SpriteRenderer>().enabled = false;
+			transform.Find("gun").GetChild(3).transform.GetComponent<SpriteRenderer>().enabled = false;
 			transform.Find("gun").GetChild(GunID).transform.GetComponent<SpriteRenderer>().enabled = true;
 			transform.Find("Sword").GetChild(0).transform.GetComponent<SpriteRenderer>().enabled = false;
 			SwordSlot = false;

@@ -10,6 +10,8 @@ public class DestroyGun : MonoBehaviour {
 
         if (other.gameObject.tag == "Avatar")
         {
+            //Re-enable the if statement, if desired for guns to be obtainable only when no gun equipped
+            //if(other.gameObject.transform.GetComponent<WeaponManager>().HasWeapon == false)
            Destroy(this.gameObject);
             
         }

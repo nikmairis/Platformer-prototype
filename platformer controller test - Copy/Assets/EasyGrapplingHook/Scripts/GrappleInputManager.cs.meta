@@ -1,0 +1,16 @@
+fileFormatVersion: 2
+guid: 9543c17574fe63642a55fb0d5654c39c
+labels:
+- GrapplingHook
+- 2DPhysics
+- 2DPlatformer
+timeCreated: 1434377264
+licenseType: Store
+MonoImporter:
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

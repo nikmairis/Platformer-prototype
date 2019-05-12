@@ -1,0 +1,17 @@
+------------------------------------------------------------------------------------
+22/07/2015 
+
+Fixed Rope Sag
+Added Rope Strength Variable to decrease rope sag for non-default rigidbody2d
+settings. Keep at 1 unless rope sag is seen, if so then increase value until 
+the sagging stops, will require tweaking.
+(Credit joechatfield for finding the issue)
+
+------------------------------------------------------------------------------------
+22/07/2015 
+
+Changed rigidbody.freezeRotation to rigidbody.constraints
+------------------------------------------------------------------------------------
+Fixed unity crashing bug - nothing withthin range or nothing in the scene made the input 
+manager fall into an infinite loop.  Added an angle tolerance to the input manager.
+------------------------------------------------------------------------------------

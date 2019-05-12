@@ -108,8 +108,11 @@ public class AvatarSetup : MonoBehaviour, IPunObservable {
 	[PunRPC]
 	public void ApplyDamage(int Damage){
 		playerHealth -= Damage;
+		BlinkOnHit();
 	}
 	//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\\
+
+
 
 	// HEALTH SYNC
 	 public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
@@ -120,5 +123,13 @@ public class AvatarSetup : MonoBehaviour, IPunObservable {
                 playerHealth = (int)stream.ReceiveNext();
             }
         }
+
+		public void BlinkOnHit(){
+			this.transform.GetChild(6).GetComponent<SpriteRenderer>().color = Color.red;
+			Invoke("BackToDefault", 0.5f);
+		}
+		void BackToDefault(){
+		this.transform.GetChild(6).GetComponent<SpriteRenderer>().color = Color.white;
+		}
 }
 }

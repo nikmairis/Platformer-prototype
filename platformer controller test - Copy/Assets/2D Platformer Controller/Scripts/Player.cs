@@ -60,6 +60,7 @@ public class Player : MonoBehaviour, IPunObservable
     public bool grappling = false;
     [HideInInspector]
     public Vector3 GrapplePos;
+    public bool newGrapple = false;
 
     public void Awake(){
         PV = GetComponent<PhotonView>();
@@ -102,6 +103,7 @@ public class Player : MonoBehaviour, IPunObservable
         CalculateVelocity();
         HandleWallSliding();
         controller.Flip(controller.FaceDirForWeapon);
+        if(!newGrapple){
         if(grappling == false){
         controller.Move(velocity * Time.deltaTime, directionalInput);
         }else{
@@ -110,6 +112,7 @@ public class Player : MonoBehaviour, IPunObservable
                 velocity = new Vector3(0,0,0);
                 grappling = false;
             }
+        }
         }
 
 
