@@ -20,5 +20,7 @@ public class PhotonPlayer : MonoBehaviour {
 			GameSetup.GS.spawnPoints[spawnPicker].position, GameSetup.GS.spawnPoints[spawnPicker].rotation, 0);
 
 		}
+		if(PhotonNetwork.IsMasterClient)
+		PhotonNetwork.Instantiate(Path.Combine("PhotonPrefabs", "CameraInfo"), new Vector3(0, 0, 0), this.transform.rotation);
 	}
 }

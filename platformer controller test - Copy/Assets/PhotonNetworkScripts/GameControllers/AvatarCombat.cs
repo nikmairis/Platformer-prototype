@@ -384,6 +384,10 @@ public class AvatarCombat : MonoBehaviour {
         {
             granadeCount += 5;
         }
+		if (other.gameObject.tag == "DeathZone")
+        {			
+			PV.RPC("ApplyDamage", RpcTarget.All, 500);
+        }
     }
 
 

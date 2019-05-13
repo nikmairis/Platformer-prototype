@@ -35,7 +35,7 @@ public class HookTravel : MonoBehaviour {
 		
 	}
 	void OnTriggerEnter2D(Collider2D col){
-		if(col != MyChar.GetComponent<BoxCollider2D>()){
+		if(col != MyChar.GetComponent<BoxCollider2D>() && col.gameObject.tag != "DeathZone"){
 		speed = 0f;
 		MyChar.GetComponent<Player>().grappling = true;
 		MyChar.GetComponent<Player>().GrapplePos = this.transform.position;
